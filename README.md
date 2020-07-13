@@ -2,7 +2,7 @@
 
 北捷 單一班次 各站 車廂擁擠度 圖形化
 
-> [web版](https://mrt.le37.tw/)
+> [web版 已上線 24hrs 系統自動更新](https://mrt.le37.tw/)
 
 
 聽說前陣子北捷推出了 [車廂擁擠度即時告知功能](https://udn.com/news/story/7323/4545992),用那個API畫畫看圖OAO  
