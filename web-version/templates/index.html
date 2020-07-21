@@ -1,0 +1,221 @@
+<html>
+
+<head>
+    <title>捷運車廂擁擠度分析-{{info}}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+        integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <style>
+        .scrollable-menu {
+            height: auto;
+            max-height: 200px;
+            overflow-x: hidden;
+        }
+    </style>
+
+</head>
+
+<body>
+    <nav class="navbar navbar-dark bg-dark navbar-expand-lg">
+        <a class="navbar-brand mb-0 h1" href="/">捷運車廂擁擠度分析</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText"
+            aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarText">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">今日資料(板南線東行)</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/dateselect/">其他日期/方向/路線</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container-md">
+        <br>
+        <center>
+            <h3 id="header">{{info}}</h3>
+            <h4>{{date}}</h4>
+            <div class="dropdown">
+                <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    選擇車次(發車時間)
+                </a>
+
+                <div class="dropdown-menu scrollable-menu" aria-labelledby="dropdownMenuLink">
+                    {% for i in trip %}
+                    <a class="dropdown-item" href="./{{i}}">{{i}}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </center>
+        <center>
+
+            {% if json!="" %}
+            <div class="chart-container">
+                <canvas id="Chart" height="400vh"></canvas>
+            </div>
+            {% else %}
+            <br>
+            請選擇車次
+            {% endif %}
+
+        </center>
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+        integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"
+        integrity="sha256-R4pqcOYV8lt7snxMQO/HSbVCFRPMdrhAFMH+vr9giYI=" crossorigin="anonymous"></script>
+
+    <script>
+        var header = $("#header")[0].innerHTML;
+        header = header.replace("BL", "板南線");
+        header = header.replace("eastbound", "東行");
+        header = header.replace("westbound", "西行");
+        $("#header")[0].innerHTML = header;
+    </script>
+    {% if json!="" %}
+    <script>
+        var data = JSON.parse(atob("{{json}}"));
+        var stations = [];
+        var car_1 = [];
+        var car_2 = [];
+        var car_3 = [];
+        var car_4 = [];
+        var car_5 = [];
+        var car_6 = [];
+        var average = [];
+        for (station in data) {
+            stations.push(station);
+        }
+        if ($("#header")[0].innerHTML.search("西行") != -1) stations.pop();
+        for (station in data) {
+            if (station == "BL23" && $("#header")[0].innerHTML.search("西行") != -1) continue;
+            car_1.push(data[station]["@Cart1W"]);
+            car_2.push(data[station]["@Cart2W"]);
+            car_3.push(data[station]["@Cart3W"]);
+            car_4.push(data[station]["@Cart4W"]);
+            car_5.push(data[station]["@Cart5W"]);
+            car_6.push(data[station]["@Cart6W"]);
+            average.push((parseFloat(data[station]["@Cart1W"]) + parseFloat(data[station]["@Cart2W"]) + parseFloat(data[station]["@Cart3W"]) + parseFloat(data[station]["@Cart4W"]) + parseFloat(data[station]["@Cart5W"]) + parseFloat(data[station]["@Cart6W"])) / 6);
+        }
+        var id_to_name = {
+            "BL01": "BL01 頂埔",
+            "BL02": "BL02 永寧",
+            "BL03": "BL03 土城",
+            "BL04": "BL04 海山",
+            "BL05": "BL05 亞東醫院",
+            "BL06": "BL06 府中",
+            "BL07": "BL07 板橋",
+            "BL08": "BL08 新埔",
+            "BL09": "BL09 江子翠",
+            "BL10": "BL10 龍山寺",
+            "BL11": "BL11 西門",
+            "BL12": "BL12 臺北車站",
+            "BL13": "BL13 善導寺",
+            "BL14": "BL14 忠孝新生",
+            "BL15": "BL15 忠孝復興",
+            "BL16": "BL16 忠孝敦化",
+            "BL17": "BL17 國父紀念館",
+            "BL18": "BL18 市政府",
+            "BL19": "BL19 永春",
+            "BL20": "BL20 後山埤",
+            "BL21": "BL21 昆陽",
+            "BL22": "BL22 南港",
+            "BL23": "BL13 南港展覽館"
+        };
+        for (var i = 0; i < stations.length; ++i) {
+            stations[i] = id_to_name[stations[i]];
+        }
+        var ctx = document.getElementById('Chart').getContext('2d');
+        var options = {
+            responsive: true,
+            maintainAspectRatio: false,
+            title: {
+                display: true,
+                text: '{{info}} {{date}} {{time}}'
+            },
+            scales: {
+                yAxes: [{
+                    display: true,
+                    ticks: {
+                        stepSize: 0.2,
+                        suggestedMin: 3.0,
+                        suggestedMax: 5.2,
+                    },
+                    unitStepSize: 0.25
+                }]
+            },
+            /*plugins: {
+               zoom: {
+                    zoom: {
+                        enabled: true,
+                        mode: 'x',
+                        speed: 0.05
+                    }
+                }
+            }*/
+        };
+        var myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: stations,
+                datasets: [{
+                    label: '第一節車箱重量',
+                    data: car_1,
+                    backgroundColor: 'Red',
+                    borderColor: 'Red',
+                    fill: false
+                }, {
+                    label: '第二節車箱重量',
+                    data: car_2,
+                    backgroundColor: 'Blue',
+                    borderColor: 'Blue',
+                    fill: false
+                }, {
+                    label: '第三節車箱重量',
+                    data: car_3,
+                    backgroundColor: 'Yellow',
+                    borderColor: 'Yellow',
+                    fill: false
+                }, {
+                    label: '第四節車箱重量',
+                    data: car_4,
+                    backgroundColor: 'Green',
+                    borderColor: 'Green',
+                    fill: false
+                }, {
+                    label: '第五節車箱重量',
+                    data: car_5,
+                    backgroundColor: 'Purple',
+                    borderColor: 'Purple',
+                    fill: false
+                }, {
+                    label: '第六節車箱重量',
+                    data: car_6,
+                    backgroundColor: 'Orange',
+                    borderColor: 'Orange',
+                    fill: false
+                }, {
+                    label: '列車平均車箱重量',
+                    data: average
+                }]
+            },
+            options: options
+        });
+    </script>
+    {% endif %}
+</body>
+
+</html>
